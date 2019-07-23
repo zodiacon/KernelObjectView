@@ -16,13 +16,13 @@
 
 extern CAppModule _Module;
 
+#include <atlstr.h>
 #include <atlwin.h>
 
 #include <atlframe.h>
 #include <atlctrls.h>
 #include <atldlgs.h>
 #include <atlctrlw.h>
-#include <atlstr.h>
 #include <vector>
 #include <unordered_map>
 #include <memory>

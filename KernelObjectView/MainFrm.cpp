@@ -9,6 +9,9 @@
 #include "View.h"
 #include "MainFrm.h"
 
+CMainFrame::CMainFrame() : m_view(*this) {
+}
+
 BOOL CMainFrame::PreTranslateMessage(MSG* pMsg) {
 	if (CFrameWindowImpl<CMainFrame>::PreTranslateMessage(pMsg))
 		return TRUE;

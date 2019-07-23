@@ -45,6 +45,8 @@ LRESULT CView::OnCreate(UINT, WPARAM, LPARAM, BOOL &) {
 
 	SetTimer(1, m_Interval, nullptr);
 
+	m_UIUpdate.UIEnable(ID_EDIT_COPY, FALSE);
+
 	return 0;
 }
 
@@ -158,6 +160,75 @@ LRESULT CView::OnFindItem(int, LPNMHDR hdr, BOOL &) {
 		}
 	}
 	return -1;
+}
+
+LRESULT CView::OnEditCopy(WORD, WORD, HWND, BOOL &) {
+	ATLASSERT(GetSelectedCount() > 0);
+
+	auto first = -1;
+	CString text, temp;
+	for (UINT i = 0; i < GetSelectedCount(); i++) {
+		first = GetNextItem(first, LVNI_SELECTED);
+		ATLASSERT(first >= 0);
+		for (int col = 0; col < 9; col++) {
+			GetItemText(first, col, temp);
+			text += temp;
+			if (col < 8)
+				text += L",";
+		}
+		text += L"\r\n";
+	}
+
+	if (OpenClipboard()) {
+		::EmptyClipboard();
+		auto size = (text.GetLength() + 1) * sizeof(WCHAR);
+		auto hData = ::GlobalAlloc(GMEM_MOVEABLE, size);
+		if (hData) {
+			auto p = ::GlobalLock(hData);
+			if (p) {
+				::memcpy(p, text.GetBuffer(), size);
+				::GlobalUnlock(p);
+				::SetClipboardData(CF_UNICODETEXT, hData);
+			}
+		}
+		::CloseClipboard();
+	}
+
+	return 0;
+}
+
+LRESULT CView::OnSelectionChanged(int, LPNMHDR, BOOL &) {
+	m_UIUpdate.UIEnable(ID_EDIT_COPY, GetSelectedCount() > 0);
+
+	return 0;
+}
+
+LRESULT CView::OnExport(WORD, WORD, HWND, BOOL &) {
+	CSimpleFileDialog dlg(FALSE, nullptr, nullptr,
+		OFN_HIDEREADONLY | OFN_EXPLORER | OFN_OVERWRITEPROMPT,
+		L"All Files\0*.*\0", m_hWnd);
+	if (dlg.DoModal() == IDOK) {
+		wil::unique_hfile hFile(::CreateFile(dlg.m_szFileName, GENERIC_WRITE, 0, nullptr, OPEN_ALWAYS, 0, nullptr));
+		if (hFile) {
+			CString text, temp;
+			for (int i = 0; i < GetItemCount(); i++) {
+				for (int col = 0; col < 9; col++) {
+					GetItemText(i, col, temp);
+					text += temp;
+					if (col < 8)
+						text += L",";
+				}
+				text += L"\r\n";
+			}
+			DWORD bytes;
+			::WriteFile(hFile.get(), text.GetBuffer(), (text.GetLength() + 1) * sizeof(WCHAR), &bytes, nullptr);
+		}
+		else {
+			MessageBox(L"Failed to open file.", L"Kernel Object Viewer");
+		}
+	}
+
+	return 0;
 }
 
 std::shared_ptr<ObjectType> CView::GetItem(int index) const {
