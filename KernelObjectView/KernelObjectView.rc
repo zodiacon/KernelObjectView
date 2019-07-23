@@ -140,7 +140,7 @@ CAPTION "About"
 FONT 9, "Segoe UI", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,68,69,50,14
-    CTEXT           "Kernel Object Viewer v0.9\n\n(C) 2019 Pavel Yosifovich",IDC_STATIC,25,24,139,32
+    CTEXT           "Kernel Object Viewer v1.0\n\n(C) 2019 Pavel Yosifovich",IDC_STATIC,25,24,139,32
     ICON            IDR_MAINFRAME,IDC_STATIC,7,7,20,20
 END
 
@@ -244,7 +244,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDR_MAINFRAME           "Kernel Object Viewer v0.9 (C)2019 Pavel Yosifovich"
+    IDR_MAINFRAME           "Kernel Object Viewer v1.0 (C)2019 Pavel Yosifovich"
 END
 
 STRINGTABLE

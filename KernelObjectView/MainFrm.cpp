@@ -21,6 +21,7 @@ BOOL CMainFrame::PreTranslateMessage(MSG* pMsg) {
 
 BOOL CMainFrame::OnIdle() {
 	UIUpdateToolBar();
+	UIUpdateStatusBar();
 	return FALSE;
 }
 
@@ -41,6 +42,7 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 	AddSimpleReBarBand(hWndToolBar, nullptr, TRUE);
 
 	CreateSimpleStatusBar();
+	m_StatusBar.SubclassWindow(m_hWndStatusBar);
 
 	CReBarCtrl(m_hWndToolBar).LockBands(TRUE);
 
@@ -49,9 +51,16 @@ LRESULT CMainFrame::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
 		WS_EX_CLIENTEDGE);
 
 	UIAddToolBar(hWndToolBar);
+	UIAddStatusBar(m_hWndStatusBar);
+
 	UISetCheck(ID_VIEW_TOOLBAR, 1);
 	UISetCheck(ID_VIEW_STATUS_BAR, 1);
 	UISetRadioMenuItem(ID_INTERVAL_1SEC, ID_INTERVAL_HALFSEC, ID_INTERVAL_10SEC);
+
+	int paneWidths[] = { 120, 250 };
+	int panes[] = { ID_PANE_OBJECTS, ID_PANE_HANDLES };
+	m_StatusBar.SetPanes(panes, _countof(panes));
+	m_StatusBar.SetParts(_countof(panes), paneWidths);
 
 	// register object for message filtering and idle updates
 	CMessageLoop* pLoop = _Module.GetMessageLoop();

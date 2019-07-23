@@ -91,6 +91,12 @@ LRESULT CView::OnTimer(UINT, WPARAM wParam, LPARAM, BOOL &) {
 
 		if (!m_Paused)
 			SetTimer(1, m_Interval, nullptr);
+
+		CString text;
+		text.Format(L"Objects: %d", m_ObjectManager.GetTotalObjects());
+		m_UIUpdate.UISetText(0, text);
+		text.Format(L"Handles: %d", m_ObjectManager.GetTotalHandles());
+		m_UIUpdate.UISetText(1, text);
 	}
 	return 0;
 }
