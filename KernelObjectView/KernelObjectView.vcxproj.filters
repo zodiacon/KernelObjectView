@@ -72,5 +72,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="res\Toolbar.axicp">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
