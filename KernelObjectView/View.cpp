@@ -24,6 +24,34 @@ void CView::SetInterval(int interval) {
 	m_Interval = interval;
 }
 
+DWORD CView::OnPrePaint(int, LPNMCUSTOMDRAW) {
+	return CDRF_NOTIFYITEMDRAW;
+}
+
+DWORD CView::OnSubItemPrePaint(int, LPNMCUSTOMDRAW cd) {
+	auto lcd = (LPNMLVCUSTOMDRAW)cd;
+	auto sub = lcd->iSubItem;
+	lcd->clrTextBk = CLR_INVALID;
+
+	if (sub < 2 || sub > 5)
+		return CDRF_DODEFAULT;
+
+	auto index = (int)cd->dwItemSpec;
+	auto& item = GetItem(index);
+	auto& changes = m_ObjectManager.GetChanges();
+
+	for (auto& change : changes) {
+		if (std::get<0>(change) == item && MapChangeToColumn(std::get<1>(change)) == sub) {
+			lcd->clrTextBk = std::get<2>(change) > 0 ? RGB(0, 255, 0) : RGB(255, 0, 0);
+		}
+	}
+	return CDRF_NOTIFYITEMDRAW;
+}
+
+DWORD CView::OnItemPrePaint(int, LPNMCUSTOMDRAW) {
+	return CDRF_NOTIFYSUBITEMDRAW;
+}
+
 LRESULT CView::OnCreate(UINT, WPARAM, LPARAM, BOOL &) {
 	DefWindowProc();
 
@@ -36,6 +64,7 @@ LRESULT CView::OnCreate(UINT, WPARAM, LPARAM, BOOL &) {
 	InsertColumn(6, L"Pool Type", LVCFMT_LEFT, 110);
 	InsertColumn(7, L"Default Paged Charge", LVCFMT_RIGHT, 110);
 	InsertColumn(8, L"Default Non-Paged Charge", LVCFMT_RIGHT, 110);
+	InsertColumn(9, L"Valid Access Mask", LVCFMT_RIGHT, 110);
 
 	SetExtendedListViewStyle(LVS_EX_DOUBLEBUFFER | LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP | LVS_EX_HEADERDRAGDROP, 0);
 
@@ -110,6 +139,10 @@ LRESULT CView::OnGetDispInfo(int, LPNMHDR hdr, BOOL &) {
 			case 8:		// default paged charge
 				::StringCchPrintf(item.pszText, item.cchTextMax, L"%d", data->DefaultPagedPoolCharge);
 				break;
+
+			case 9:		// valid access mask
+				::StringCchPrintf(item.pszText, item.cchTextMax, L"0x%08X", data->ValidAccessMask);
+				break;
 		}
 	}
 	return 0;
@@ -170,10 +203,10 @@ LRESULT CView::OnEditCopy(WORD, WORD, HWND, BOOL &) {
 	for (UINT i = 0; i < GetSelectedCount(); i++) {
 		first = GetNextItem(first, LVNI_SELECTED);
 		ATLASSERT(first >= 0);
-		for (int col = 0; col < 9; col++) {
+		for (int col = 0; col < ColumnCount; col++) {
 			GetItemText(first, col, temp);
 			text += temp;
-			if (col < 8)
+			if (col < ColumnCount - 1)
 				text += L",";
 		}
 		text += L"\r\n";
@@ -212,7 +245,7 @@ LRESULT CView::OnExport(WORD, WORD, HWND, BOOL &) {
 		if (hFile) {
 			CString text, temp;
 			for (int i = 0; i < GetItemCount(); i++) {
-				for (int col = 0; col < 9; col++) {
+				for (int col = 0; col < ColumnCount; col++) {
 					GetItemText(i, col, temp);
 					text += temp;
 					if (col < 8)
@@ -300,6 +333,12 @@ bool CView::CompareItems(const std::shared_ptr<ObjectType>& item1, const std::sh
 				(item2->DefaultPagedPoolCharge > item1->DefaultPagedPoolCharge) :
 				(item1->DefaultPagedPoolCharge > item2->DefaultPagedPoolCharge);
 			return result;
+
+		case 9:		// valid access mask
+			result = m_SortAscending ?
+				(item2->ValidAccessMask > item1->ValidAccessMask) :
+				(item1->ValidAccessMask > item2->ValidAccessMask);
+			return result;
 	}
 	return m_SortAscending ? result : !result;
 }
@@ -307,4 +346,14 @@ bool CView::CompareItems(const std::shared_ptr<ObjectType>& item1, const std::sh
 void CView::DoSort() {
 	std::sort(m_Items.begin(), m_Items.end(),
 		[this](auto& i1, auto& i2) { return CompareItems(i1, i2); });
+}
+
+int CView::MapChangeToColumn(ObjectManager::ChangeType type) const {
+	switch (type) {
+		case ObjectManager::ChangeType::TotalHandles: return 3;
+		case ObjectManager::ChangeType::TotalObjects: return 2;
+		case ObjectManager::ChangeType::PeakHandles: return 5;
+		case ObjectManager::ChangeType::PeakObjects: return 4;
+	}
+	return -1;
 }

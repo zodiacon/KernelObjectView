@@ -6,7 +6,9 @@
 
 #include "ObjectManager.h"
 
-class CView : public CWindowImpl<CView, CListViewCtrl> {
+class CView : 
+	public CWindowImpl<CView, CListViewCtrl>,
+	public CCustomDraw<CView>{
 public:
 	DECLARE_WND_SUPERCLASS(NULL, CListViewCtrl::GetWndClassName())
 
@@ -14,8 +16,14 @@ public:
 
 	BOOL PreTranslateMessage(MSG* pMsg);
 
+	static const int ColumnCount = 10;
+
 	bool TogglePause();
 	void SetInterval(int interval);
+
+	DWORD OnPrePaint(int /*idCtrl*/, LPNMCUSTOMDRAW /*lpNMCustomDraw*/);
+	DWORD OnSubItemPrePaint(int /*idCtrl*/, LPNMCUSTOMDRAW /*lpNMCustomDraw*/);
+	DWORD OnItemPrePaint(int /*idCtrl*/, LPNMCUSTOMDRAW /*lpNMCustomDraw*/);
 
 	BEGIN_MSG_MAP(CView)
 		MESSAGE_HANDLER(WM_CREATE, OnCreate)
@@ -24,6 +32,7 @@ public:
 		REFLECTED_NOTIFY_CODE_HANDLER(LVN_ODFINDITEM, OnFindItem)
 		REFLECTED_NOTIFY_CODE_HANDLER(LVN_COLUMNCLICK, OnColumnClick)
 		REFLECTED_NOTIFY_CODE_HANDLER(LVN_ITEMCHANGED, OnSelectionChanged)
+		CHAIN_MSG_MAP_ALT(CCustomDraw<CView>, 1)
 		DEFAULT_REFLECTION_HANDLER()
 	ALT_MSG_MAP(1)
 		COMMAND_ID_HANDLER(ID_EDIT_COPY, OnEditCopy)
@@ -49,6 +58,7 @@ private:
 	static PCWSTR PoolTypeToString(PoolType type);
 	bool CompareItems(const std::shared_ptr<ObjectType>& item1, const std::shared_ptr<ObjectType>& item2) const;
 	void DoSort();
+	int MapChangeToColumn(ObjectManager::ChangeType type) const;
 
 private:
 	ObjectManager m_ObjectManager;

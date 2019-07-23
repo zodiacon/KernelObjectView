@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AxialisIconCollection>
+  <Name></Name>
+  <Icon>
+    <Name>data-export</Name>
+    <StockIconName>data-export.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Database</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>100</ResourceIDValue>
+    <ResourceID>ID_DATA-EXPORT</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>clipboard-copy</Name>
+    <StockIconName>clipboard-copy.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Basic</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>101</ResourceIDValue>
+    <ResourceID>ID_CLIPBOARD-COPY</ResourceID>
+  </Icon>
+  <Icon>
+    <Name>action-play-pause-filled</Name>
+    <StockIconName>action-play-pause-filled.axvi</StockIconName>
+    <StockIconFamily>Axialis Office Pro</StockIconFamily>
+    <StockIconSet>Multimedia</StockIconSet>
+    <StockOverlayName></StockOverlayName>
+    <StockOverlayPos>4</StockOverlayPos>
+    <ResourceIDValue>102</ResourceIDValue>
+    <ResourceID>ID_ACTION-PLAY-PAUSE-FILLED</ResourceID>
+  </Icon>
+</AxialisIconCollection>

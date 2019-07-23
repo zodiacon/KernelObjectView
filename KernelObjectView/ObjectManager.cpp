@@ -23,11 +23,15 @@ int ObjectManager::EnumObjectTypes() {
 	if (empty) {
 		_types.reserve(count);
 		_typesMap.reserve(count);
+		_changes.reserve(32);
 	}
 	else {
+		_changes.clear();
 		assert(count == _types.size());
 	}
 	auto raw = &p->TypeInformation[0];
+	_totalHandles = _totalObjects = 0;
+
 	for (ULONG i = 0; i < count; i++) {
 		auto type = empty ? std::make_shared<ObjectType>() : _typesMap[raw->TypeIndex];
 		if (empty) {
@@ -41,6 +45,17 @@ int ObjectManager::EnumObjectTypes() {
 			type->DefaultPagedPoolCharge = raw->DefaultPagedPoolCharge;
 			type->ValidAccessMask = raw->ValidAccessMask;
 		}
+		else {
+			if (type->TotalNumberOfHandles != raw->TotalNumberOfHandles)
+				_changes.push_back({ type, ChangeType::TotalHandles, (int32_t)raw->TotalNumberOfHandles - (int32_t)type->TotalNumberOfHandles });
+			if (type->TotalNumberOfObjects != raw->TotalNumberOfObjects)
+				_changes.push_back({ type, ChangeType::TotalObjects, (int32_t)raw->TotalNumberOfObjects - (int32_t)type->TotalNumberOfObjects });
+			if (type->HighWaterNumberOfHandles != raw->HighWaterNumberOfHandles)
+				_changes.push_back({ type, ChangeType::PeakHandles, (int32_t)raw->HighWaterNumberOfHandles - (int32_t)type->HighWaterNumberOfHandles });
+			if (type->HighWaterNumberOfObjects != raw->HighWaterNumberOfObjects)
+				_changes.push_back({ type, ChangeType::PeakObjects, (int32_t)raw->HighWaterNumberOfObjects - (int32_t)type->HighWaterNumberOfObjects });
+		}
+
 		type->TotalNumberOfHandles = raw->TotalNumberOfHandles;
 		type->TotalNumberOfObjects = raw->TotalNumberOfObjects;
 		type->TotalNonPagedPoolUsage = raw->TotalNonPagedPoolUsage;
@@ -48,6 +63,9 @@ int ObjectManager::EnumObjectTypes() {
 		type->HighWaterNumberOfObjects = raw->HighWaterNumberOfObjects;
 		type->HighWaterNumberOfHandles = raw->HighWaterNumberOfHandles;
 		type->TotalNamePoolUsage = raw->TotalNamePoolUsage;
+
+		_totalObjects += raw->TotalNumberOfObjects;
+		_totalHandles += raw->TotalNumberOfHandles;
 
 		if (empty) {
 			_types.emplace_back(type);
@@ -63,4 +81,16 @@ int ObjectManager::EnumObjectTypes() {
 
 const std::vector<std::shared_ptr<ObjectType>>& ObjectManager::GetObjectTypes() const {
 	return _types;
+}
+
+const std::vector<ObjectManager::Change>& ObjectManager::GetChanges() const {
+	return _changes;
+}
+
+int64_t ObjectManager::GetTotalObjects() const {
+	return _totalObjects;
+}
+
+int64_t ObjectManager::GetTotalHandles() const {
+	return _totalHandles;
 }

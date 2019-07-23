@@ -93,11 +93,26 @@ public:
 	ObjectManager();
 	~ObjectManager();
 
+	enum class ChangeType {
+		NoChange,
+		TotalHandles,
+		TotalObjects,
+		PeakHandles,
+		PeakObjects,
+	};
+
+	using Change = std::tuple<std::shared_ptr<ObjectType>, ChangeType, int32_t>;
+
 	int EnumObjectTypes();
 	const std::vector<std::shared_ptr<ObjectType>>& GetObjectTypes() const;
+	const std::vector<Change>& GetChanges() const;
+	int64_t GetTotalObjects() const;
+	int64_t GetTotalHandles() const;
 
 private:
 	std::vector<std::shared_ptr<ObjectType>> _types;
 	std::unordered_map<uint32_t, std::shared_ptr<ObjectType>> _typesMap;
+	std::vector<Change> _changes;
+	int64_t _totalObjects, _totalHandles;
 };
 
